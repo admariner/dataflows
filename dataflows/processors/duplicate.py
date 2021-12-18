@@ -46,8 +46,7 @@ def duplicate(
                         new_res_list.append(res)
                     else:
                         yield res
-            for res in new_res_list:
-                yield res
+            yield from new_res_list
 
         descriptor = package.pkg.descriptor
         descriptor['resources'] = list(traverse_resources(descriptor['resources']))

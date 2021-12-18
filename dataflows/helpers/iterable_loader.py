@@ -43,9 +43,7 @@ class iterable_storage(Storage):
                 types.add('datetime')
             elif isinstance(value, datetime.date):
                 types.add('date')
-            elif value is None:
-                pass
-            else:
+            elif value is not None:
                 assert 'Unknown Python type: %r' % value
         if len(types) != 1:
             return 'any'

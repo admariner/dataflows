@@ -235,9 +235,8 @@ class load(DataStreamProcessor):
             mapping = {}
             if values:
                 for key, value in row.items():
-                    if not source or key in source:
-                        if value in values:
-                            mapping[key] = value
+                    if (not source or key in source) and value in values:
+                        mapping[key] = value
             row[target] = mapping
             yield row
 

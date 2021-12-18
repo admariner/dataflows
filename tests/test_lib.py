@@ -29,7 +29,7 @@ def test_dump_to_sql():
 
     # Check validity
     engine = create_engine('sqlite:///out/test.db')
-    result = list(dict(x) for x in engine.execute('select * from output_table'))
+    result = [dict(x) for x in engine.execute('select * from output_table')]
     assert result == data
 
 
@@ -60,7 +60,7 @@ def test_dump_to_sql_with_indexes():
     # Check indexes are present
     engine = create_engine('sqlite:///out/sql_with_indexes.db')
     inspector = reflection.Inspector.from_engine(engine)
-    indexes = [index for index in inspector.get_indexes('output_table')]
+    indexes = list(inspector.get_indexes('output_table'))
     assert indexes
 
 
@@ -583,7 +583,7 @@ def test_sort_reverse_many_rows():
     )
     results, _, _ = f.results()
     results = results[0]
-    assert results[0:2] == [{'a': 999, 'b': 4}, {'a': 994, 'b': 4}]
+    assert results[:2] == [{'a': 999, 'b': 4}, {'a': 994, 'b': 4}]
     assert results[998:1000] == [{'a': 5, 'b': 0}, {'a': 0, 'b': 0}]
 
 
@@ -696,7 +696,7 @@ def test_deduplicate():
         deduplicate(),
     )
     results, _, _ = f.results()
-    assert set(x['c'] for x in results[0]) == {'First'}
+    assert {x['c'] for x in results[0]} == {'First'}
 
 
 def test_duplicate():
@@ -928,7 +928,11 @@ def test_load_from_package_resources():
     datapackage = {'resources': [{'name': 'my-resource-{}'.format(i),
                                   'path': 'my-resource-{}.csv'.format(i),
                                   'schema': {'fields': [{'name': 'foo', 'type': 'string'}]}} for i in range(2)]}
-    resources = ((row for row in [{'foo': 'bar{}'.format(i)}, {'foo': 'baz{}'.format(i)}]) for i in range(2))
+    resources = (
+        iter([{'foo': 'bar{}'.format(i)}, {'foo': 'baz{}'.format(i)}])
+        for i in range(2)
+    )
+
 
     data, dp, *_ = Flow(
         load((datapackage, resources), resources=['my-resource-1']),

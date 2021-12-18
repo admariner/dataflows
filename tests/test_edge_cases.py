@@ -9,9 +9,8 @@ def test_exception_in_generator():
     from dataflows import Flow, printer, exceptions
 
     def generator():
-        for i in range(5):
+        for _ in range(5):
             raise MyException()
-            yield {"i": i}
 
     with pytest.raises(exceptions.ProcessorError) as excinfo:
         Flow(generator(), printer()).process()

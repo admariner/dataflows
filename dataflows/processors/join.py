@@ -34,7 +34,7 @@ def median(values):
     if values is None:
         return None
     ll = len(values)
-    mid = int(ll/2)
+    mid = ll // 2
     values = sorted(values)
     if ll % 2 == 0:
         return (values[mid - 1] + values[mid])/2
@@ -139,7 +139,7 @@ def fix_fields(fields):
 
 def expand_fields(fields, schema_fields):
     if '*' in fields:
-        existing_names = set(f['name'] for f in fields.values())
+        existing_names = {f['name'] for f in fields.values()}
         spec = fields.pop('*')
         for sf in schema_fields:
             sf_name = sf['name']
@@ -162,7 +162,7 @@ def order_fields(fields, schema_fields):
 def concatenator(resources, all_target_fields, field_mapping):
     for resource_ in resources:
         for row in resource_:
-            processed = dict((k, '') for k in all_target_fields)
+            processed = {k: '' for k in all_target_fields}
             values = [(field_mapping[k], v) for (k, v)
                     in row.items()
                     if k in field_mapping]
@@ -205,10 +205,7 @@ def join_aux(source_name, source_key, source_delete,  # noqa: C901
                 name = spec['name']
                 curr = current.get(field)
                 agg = spec['aggregate']
-                if agg != 'count':
-                    new = row.get(name)
-                else:
-                    new = ''
+                new = row.get(name) if agg != 'count' else ''
                 if new is not None:
                     current[field] = AGGREGATORS[agg].func(curr, new)
                 elif field not in current:
@@ -225,13 +222,14 @@ def join_aux(source_name, source_key, source_delete,  # noqa: C901
             # just empty the iterable
             collections.deque(indexer(resource), maxlen=0)
             for key, value in db.items():
-                row = dict(
-                    (f, None) for f in fields.keys()
+                row = {f: None for f in fields.keys()}
+                row.update(
+                    {
+                        k: AGGREGATORS[fields[k]['aggregate']].finaliser(v)
+                        for k, v in value.items()
+                    }
                 )
-                row.update(dict(
-                    (k, AGGREGATORS[fields[k]['aggregate']].finaliser(v))
-                    for k, v in value.items()
-                ))
+
                 yield row
         else:
             for row_number, row in enumerate(resource, start=1):
@@ -242,10 +240,7 @@ def join_aux(source_name, source_key, source_delete,  # noqa: C901
                 except KeyError:
                     if mode == 'inner':
                         continue
-                    extra = dict(
-                        (k, row.get(k))
-                        for k in fields.keys()
-                    )
+                    extra = {k: row.get(k) for k in fields.keys()}
                 row.update(extra)
                 yield row
             if mode == 'full-outer':
@@ -258,11 +253,12 @@ def join_aux(source_name, source_key, source_delete,  # noqa: C901
     def create_extra_by_key(key):
         extra = db.get(key)
         key = extra.pop('__key__', None)
-        extra = dict(
-            (k, AGGREGATORS[fields[k]['aggregate']].finaliser(v))
+        extra = {
+            k: AGGREGATORS[fields[k]['aggregate']].finaliser(v)
             for k, v in extra.items()
             if k in fields
-        )
+        }
+
         if key:
             for k, v in zip(target_key.key_list, key):
                 extra[k] = v

@@ -39,9 +39,10 @@ class validate(DataStreamProcessor):
         def func(rows: ResourceWrapper):
             res_name = rows.res.name
             for i, row in enumerate(rows):
-                if not row_validator(row):
-                    if not self.on_error(res_name, row, i, None, None):
-                        continue
+                if not row_validator(row) and not self.on_error(
+                    res_name, row, i, None, None
+                ):
+                    continue
                 yield row
         return func
 

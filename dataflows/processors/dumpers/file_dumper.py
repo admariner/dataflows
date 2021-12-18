@@ -124,34 +124,33 @@ class FileDumper(DumperBase):
         os.unlink(filename)
 
     def process_resource(self, resource: ResourceWrapper):
-        if resource.res.name in self.file_formatters:
-            schema = resource.res.schema
-
-            file_formatter = self.file_formatters[resource.res.name]
-
-            temp_file = UmaskNamedTemporaryFile(
-                mode=file_formatter.FILE_MODE, delete=False,
-                newline='' if 'b' not in file_formatter.FILE_MODE else None
-            )
-            writer_kwargs = self.writer_options
-            if self.use_titles:
-                writer_kwargs['use_titles'] = True
-            writer_kwargs['temporal_format_property'] = self.temporal_format_property
-            writer_kwargs['resource'] = resource.res
-            writer = file_formatter(temp_file, schema, **writer_kwargs)
-
-            return self.rows_processor(resource,
-                                       writer,
-                                       temp_file)
-        else:
+        if resource.res.name not in self.file_formatters:
             return resource
+        schema = resource.res.schema
+
+        file_formatter = self.file_formatters[resource.res.name]
+
+        temp_file = UmaskNamedTemporaryFile(
+            mode=file_formatter.FILE_MODE, delete=False,
+            newline='' if 'b' not in file_formatter.FILE_MODE else None
+        )
+        writer_kwargs = self.writer_options
+        if self.use_titles:
+            writer_kwargs['use_titles'] = True
+        writer_kwargs['temporal_format_property'] = self.temporal_format_property
+        writer_kwargs['resource'] = resource.res
+        writer = file_formatter(temp_file, schema, **writer_kwargs)
+
+        return self.rows_processor(resource,
+                                   writer,
+                                   temp_file)
 
     @staticmethod
     def hash_handler(tfile):
         tfile.seek(0)
         hasher = hashlib.md5()
         data = 'x'
-        while len(data) > 0:
+        while data != '':
             data = tfile.read(1024)
             if isinstance(data, str):
                 hasher.update(data.encode('utf8'))
