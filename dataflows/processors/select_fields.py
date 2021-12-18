@@ -7,28 +7,22 @@ from ..helpers.resource_matcher import ResourceMatcher
 def process_resource(rows: ResourceWrapper, configuration):
     fields = configuration[rows.res.descriptor['name']]
     for row in rows:
-        row = dict(
-            (k, v)
-            for k, v in row.items()
-            if k in fields
-        )
+        row = {k: v for k, v in row.items()
+                    if k in fields}
         yield row
 
 
 def select_fields(fields, resources=None, regex=True):
 
     def func(package):
-        configuration = dict()
+        configuration = {}
         matcher = ResourceMatcher(resources, package.pkg)
         dp_resources = package.pkg.descriptor.get('resources', [])
         for resource in dp_resources:
             if matcher.match(resource['name']):
                 configuration.setdefault(resource['name'], set())
                 dp_fields = resource['schema'].get('fields', [])
-                dp_fields = dict(
-                    (f['name'], f)
-                    for f in dp_fields
-                )
+                dp_fields = {f['name']: f for f in dp_fields}
                 new_fields = []
                 for selected_field in fields:
                     selected_field = re.compile('^{}$'.format(

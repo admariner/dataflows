@@ -15,7 +15,7 @@ class set_type(DataStreamProcessor):
         self.name = re.compile(f'^{name}$')
         self.options = options
         self.resources = resources
-        self.field_names = dict()
+        self.field_names = {}
         self.on_error = on_error
         self.transform = self.wrap_transformer(transform) if transform else None
 

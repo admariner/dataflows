@@ -54,9 +54,8 @@ class DumperBase(DataStreamProcessor):
     @staticmethod
     def insert_hash_in_path(descriptor, hash):
         path = descriptor.get('path')
-        if isinstance(path, list):
-            if len(path) > 0:
-                path = path[0]
+        if isinstance(path, list) and len(path) > 0:
+            path = path[0]
 
         assert isinstance(path, str), '%r' % path
 
